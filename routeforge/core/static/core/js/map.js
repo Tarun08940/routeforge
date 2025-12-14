@@ -13,7 +13,7 @@ map.on("click", async (e) => {
   } else if (!dropMarker) {
     dropMarker = L.marker(e.latlng).addTo(map).bindPopup("Drop").openPopup();
 
-    const res = await fetch("/api/route", {
+    const res = await fetch("/api/deliveries", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({
@@ -24,6 +24,6 @@ map.on("click", async (e) => {
 
     const data = await res.json();
     document.getElementById("result").innerText =
-      `Distance: ${data.distance_km} km | ETA: ${data.estimated_time_min} min`;
+      `Courier: ${data.courier || "None"} | ETA: ${data.eta_min || "N/A"} min`;
   }
 });

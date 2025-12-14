@@ -12,3 +12,26 @@ class Courier(models.Model):
 
     def __str__(self):
         return self.name
+
+class Delivery(models.Model):
+    pickup_lat = models.FloatField()
+    pickup_lng = models.FloatField()
+    drop_lat = models.FloatField()
+    drop_lng = models.FloatField()
+
+    status = models.CharField(
+        max_length=20,
+        default="pending"
+    )
+
+    assigned_courier = models.ForeignKey(
+        Courier,
+        null=True,
+        blank=True,
+        on_delete=models.SET_NULL
+    )
+
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    def __str__(self):
+        return f"Delivery #{self.id} ({self.status})"

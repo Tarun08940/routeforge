@@ -2,6 +2,7 @@ from django.http import JsonResponse
 from django.views.decorators.csrf import csrf_exempt
 import json
 import math
+from .models import Courier, Delivery
 
 
 def haversine_km(lat1, lng1, lat2, lng2):
@@ -51,3 +52,61 @@ from django.shortcuts import render
 
 def home(request):
     return render(request, "core/index.html")
+
+def find_nearest_available_courier(pickup_lat, pickup_lng):
+    couriers = Courier.objects.filter(is_available=True)
+
+    nearest = None
+    min_distance = float("inf")
+
+    for courier in couriers:
+        if courier.current_lat is None or courier.current_lng is None:
+            continue
+
+        dist = haversine_km(
+            pickup_lat, pickup_lng,
+            courier.current_lat, courier.current_lng
+        )
+
+        if dist < min_distance:
+            min_distance = dist
+            nearest = courier
+
+    return nearest, min_distance
+@csrf_exempt
+def create_delivery(request):
+    if request.method != "POST":
+        return JsonResponse({"error": "POST required"}, status=400)
+
+    data = json.loads(request.body)
+
+    pickup = data["pickup"]
+    drop = data["drop"]
+
+    delivery = Delivery.objects.create(
+        pickup_lat=pickup["lat"],
+        pickup_lng=pickup["lng"],
+        drop_lat=drop["lat"],
+        drop_lng=drop["lng"],
+    )
+
+    courier, courier_distance = find_nearest_available_courier(
+        pickup["lat"], pickup["lng"]
+    )
+
+    if courier:
+        delivery.assigned_courier = courier
+        delivery.status = "assigned"
+        delivery.save()
+
+        avg_speed = courier.avg_speed_kmh
+        eta_min = (courier_distance / avg_speed) * 60
+    else:
+        eta_min = None
+
+    return JsonResponse({
+        "delivery_id": delivery.id,
+        "status": delivery.status,
+        "courier": courier.name if courier else None,
+        "eta_min": round(eta_min, 1) if eta_min else None
+    })
