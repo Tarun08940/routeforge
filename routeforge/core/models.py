@@ -19,19 +19,20 @@ class Delivery(models.Model):
     drop_lat = models.FloatField()
     drop_lng = models.FloatField()
 
-    status = models.CharField(
-        max_length=20,
-        default="pending"
-    )
-
     assigned_courier = models.ForeignKey(
-        Courier,
-        null=True,
-        blank=True,
-        on_delete=models.SET_NULL
+        Courier, null=True, blank=True, on_delete=models.SET_NULL
     )
 
-    created_at = models.DateTimeField(auto_now_add=True)
+    status = models.CharField(
+        max_length=30,
+        default='pending',
+        choices=[
+            ('pending', 'Pending'),
+            ('assigned', 'Assigned'),
+            ('in_transit', 'In Transit'),
+            ('delivered', 'Delivered'),
+        ]
+    )
 
-    def __str__(self):
-        return f"Delivery #{self.id} ({self.status})"
+    requested_at = models.DateTimeField(auto_now_add=True)
+    estimated_time_min = models.FloatField(null=True, blank=True)

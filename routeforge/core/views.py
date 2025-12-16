@@ -110,3 +110,25 @@ def create_delivery(request):
         "courier": courier.name if courier else None,
         "eta_min": round(eta_min, 1) if eta_min else None
     })
+
+def assign_courier(request):
+    import json
+    data = json.loads(request.body)
+    delivery = Delivery.objects.get(id=data['delivery_id'])
+
+    courier = Courier.objects.filter(is_available=True).first()
+    if not courier:
+        return JsonResponse({'error': 'No couriers available'}, status=400)
+
+    delivery.assigned_courier = courier
+    delivery.status = 'assigned'
+    delivery.save()
+
+    courier.is_available = False
+    courier.save()
+
+    return JsonResponse({
+        'courier': courier.name,
+        'delivery_status': delivery.status
+    })
+
