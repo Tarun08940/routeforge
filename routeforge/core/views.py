@@ -9,7 +9,7 @@ def haversine_km(lat1, lng1, lat2, lng2):
     """
     Calculate great-circle distance between two points on Earth (km)
     """
-    R = 6371  # Earth radius in km
+    R = 6371  # Earth radius in kILOMETER
 
     phi1 = math.radians(lat1)
     phi2 = math.radians(lat2)
